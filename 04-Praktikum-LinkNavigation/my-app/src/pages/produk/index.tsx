@@ -3,14 +3,14 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 
 const Produk = () => {
-  // const [isLogin, setIsLogin] = useState(false);
-  // const router = useRouter();
+  const [isLogin, setIsLogin] = useState(false);
+  const router = useRouter();
 
-  // useEffect(() => {
-  //   if (!isLogin) {
-  //     router.push("/auth/login");
-  //   }
-  // }, [isLogin, router]);
+  useEffect(() => {
+    if (!isLogin) {
+      router.push("/auth/login");
+    }
+  }, [isLogin, router]);
 
   return (
     <div>
