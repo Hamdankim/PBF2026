@@ -1,20 +1,23 @@
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 
-const produk = () => {
-  const [isLogin, setIsLogin] = useState(false);
-  const { push } = useRouter();
-  useEffect(() => {
-    if (!isLogin) {
-      push("/auth/login");
-    }
-    }, []);
+const Produk = () => {
+  // const [isLogin, setIsLogin] = useState(false);
+  // const router = useRouter();
+
+  // useEffect(() => {
+  //   if (!isLogin) {
+  //     router.push("/auth/login");
+  //   }
+  // }, [isLogin, router]);
 
   return (
     <div>
-      Produk User Page
+      <h1>Halaman Produk</h1> <br />
+      <Link href="/auth/login">Ke Halaman Login</Link>
     </div>
-  )
-}
+  );
+};
 
-export default produk
+export default Produk;
