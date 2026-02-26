@@ -1,3 +1,4 @@
+import Footer from "../Footer";
 import Navbar from "../Navbar";
 
 type AppShellProps = {
@@ -10,9 +11,7 @@ const AppShell = (props:AppShellProps) => {
         <main>
             <Navbar />
             {children}
-            <div>
-                Footer Component
-            </div>
+            <Footer />
         </main>
     )
 }
