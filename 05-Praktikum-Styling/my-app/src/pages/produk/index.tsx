@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
+import ProdukView from "@/views/produk/ProdukView";
 
-const Produk = () => {
+const ProdukPage = () => {
   const [isLogin, setIsLogin] = useState(false);
   const router = useRouter();
 
@@ -12,12 +12,9 @@ const Produk = () => {
     }
   }, [isLogin, router]);
 
-  return (
-    <div>
-      <h1>Halaman Produk</h1> <br />
-      <Link href="/auth/login">Ke Halaman Login</Link>
-    </div>
-  );
+  if (!isLogin) return null;
+
+  return <ProdukView />;
 };
 
-export default Produk;
+export default ProdukPage;

@@ -1,14 +1,10 @@
+import ProdukView from "@/views/produk/ProdukView";
 import { useRouter } from "next/router";
 
-const HalamanProduk = () => {
-    const { query } = useRouter();
+const DetailProdukPage = () => {
+  const { query } = useRouter();
 
-    return (
-        <div>
-            <h1>Halaman Produk</h1>
-            <p>Produk: {query.id}</p>
-        </div>
-    )
-}
+  return <ProdukView productId={query.id as string} />;
+};
 
-export default HalamanProduk
+export default DetailProdukPage;
