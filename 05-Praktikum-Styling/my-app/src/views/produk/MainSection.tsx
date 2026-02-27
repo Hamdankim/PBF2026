@@ -4,12 +4,18 @@ type Props = {
 
 const MainSection = ({ productId }: Props) => {
   return (
-    <section>
-      {productId ? (
-        <p>Produk: {productId}</p>
-      ) : (
-        <p>Silakan pilih produk.</p>
-      )}
+    <section className="flex justify-center py-10">
+      <div className="bg-white shadow-md rounded-lg p-6 text-center">
+        {productId ? (
+          <p className="text-lg font-medium">
+            Produk: {productId}
+          </p>
+        ) : (
+          <p className="text-gray-600">
+            Silakan pilih produk.
+          </p>
+        )}
+      </div>
     </section>
   );
 };

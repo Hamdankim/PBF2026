@@ -6,6 +6,7 @@ import styles from './login.module.scss';
 const TampilanLogin = () => {
     const {push} = useRouter();
     const handlerLogin = () => {
+        localStorage.setItem("isLogin", "true");
         push("/produk");
     }
   return (

@@ -3,16 +3,20 @@ import { useRouter } from "next/router";
 import ProdukView from "@/views/produk/ProdukView";
 
 const ProdukPage = () => {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState<boolean | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLogin) {
+    const loginStatus = localStorage.getItem("isLogin");
+
+    if (loginStatus === "true") {
+      setIsLogin(true);
+    } else {
       router.push("/auth/login");
     }
-  }, [isLogin, router]);
+  }, [router]);
 
-  if (!isLogin) return null;
+  if (isLogin === null) return null;
 
   return <ProdukView />;
 };

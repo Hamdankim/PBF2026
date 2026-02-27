@@ -7,10 +7,10 @@ type Props = {
 
 const ProdukView = ({ productId }: Props) => {
   return (
-    <>
+    <div className="min-h-screen bg-gray-100">
       <HeroSection />
       <MainSection productId={productId} />
-    </>
+    </div>
   );
 };
 
