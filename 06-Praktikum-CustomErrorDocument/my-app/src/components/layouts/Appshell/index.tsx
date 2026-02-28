@@ -2,7 +2,7 @@ import Footer from "../Footer";
 import Navbar from "../Navbar";
 import { useRouter } from "next/router";
 
-const disableNavbarFooter = ["/auth/login", "/auth/register"];
+const disableNavbarFooter = ["/auth/login", "/auth/register", "/404"];
 
 type AppShellProps = {
     children: React.ReactNode
