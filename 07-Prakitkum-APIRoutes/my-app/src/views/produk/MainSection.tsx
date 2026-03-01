@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 
 type ProductType = {
   id: string;
-  nama: string;
-  harga: number;
-  ukuran: string;
-  warna: string;
+  name: string;
+  price: number;
+  size: string;
+  category: string;
 };
 
 type Props = {
@@ -16,7 +16,7 @@ const MainSection = ({ productId }: Props) => {
   const [products, setProducts] = useState<ProductType[]>([]);
   const [product, setProduct] = useState<ProductType | null>(null);
 
-  useEffect(() => {
+  const fetchData = () => {
     fetch("/api/produk")
       .then((res) => res.json())
       .then((data) => {
@@ -26,36 +26,47 @@ const MainSection = ({ productId }: Props) => {
           const found = data.data.find(
             (item: ProductType) => item.id === productId
           );
-          setProduct(found);
+          setProduct(found || null);
         }
       });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, [productId]);
 
   return (
     <section className="flex justify-center py-10">
-      <div className="bg-white shadow-md rounded-lg p-6 text-center">
+      <div className="bg-white shadow-md rounded-lg p-6 text-center w-full max-w-md">
+
+        {/* BUTTON REFRESH */}
+        <button
+          onClick={fetchData}
+          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Refresh Data
+        </button>
 
         {/* MODE LIST */}
         {!productId &&
           products.map((item) => (
             <div key={item.id} className="mb-4">
-              <h2>{item.nama}</h2>
-              <p>Harga: {item.harga}</p>
-              <p>Ukuran: {item.ukuran}</p>
-              <p>Warna: {item.warna}</p>
+              <h2>{item.name}</h2>
+              <p>Harga: {item.price}</p>
+              <p>Ukuran: {item.size}</p>
+              <p>Kategori: {item.category}</p>
             </div>
           ))}
 
         {/* MODE DETAIL */}
         {productId && product && (
           <>
-            <h2 className="text-xl font-bold">{product.nama}</h2>
-            <p>Harga: {product.harga}</p>
-            <p>Ukuran: {product.ukuran}</p>
-            <p>Warna: {product.warna}</p>
+            <h2 className="text-xl font-bold">{product.name}</h2>
+            <p>Harga: {product.price}</p>
+            <p>Ukuran: {product.size}</p>
+            <p>Kategori: {product.category}</p>
           </>
         )}
-
       </div>
     </section>
   );
