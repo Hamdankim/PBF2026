@@ -15,41 +15,42 @@ const TampilanProduk = ({ products }: { products: ProductType[] }) => {
 
       <div className={styles.produk__content}>
         {products.length > 0 ? (
-          <>
-            {products.map((products: ProductType) => (
-              <div
-                key={products.id}
-                className={styles.produk__content__item}
-              >
-                <div className={styles.produk__content__item__image}>
-                  <img
-                    src={products.image}
-                    alt={products.name}
-                    width={200}
-                  />
-                </div>
+          products.map((product: ProductType) => (
+            <div
+              key={product.id}
+              className={styles.produk__content__item}
+            >
+              <img
+                src={product.image}
+                alt={product.name}
+                className={styles.produk__content__item__image}
+              />
 
-                <h4 className={styles.produk__content__item__name}>
-                  {products.name}
-                </h4>
+              <h4 className={styles.produk__content__item__name}>
+                {product.name}
+              </h4>
 
-                <p className={styles.produk__content__item__category}>
-                  {products.category}
-                </p>
+              <p className={styles.produk__content__item__category}>
+                {product.category}
+              </p>
 
-                <p className={styles.produk__content__item__price}>
-                  Rp {products.price.toLocaleString()}
-                </p>
-              </div>
-            ))}
-          </>
+              <p className={styles.produk__content__item__price}>
+                Rp {product.price.toLocaleString()}
+              </p>
+            </div>
+          ))
         ) : (
-          <div className={styles.produk__content__skeleton}>
-            <div className={styles.produk__content__skeleton__image}></div>
-            <div className={styles.produk__content__skeleton__name}></div>
-            <div className={styles.produk__content__skeleton__category}></div>
-            <div className={styles.produk__content__skeleton__price}></div>
-          </div>
+          Array.from({ length: 4 }).map((_, index) => (
+            <div
+              key={index}
+              className={styles.produk__content__skeleton}
+            >
+              <div className={styles.skeleton__image}></div>
+              <div className={styles.skeleton__name}></div>
+              <div className={styles.skeleton__category}></div>
+              <div className={styles.skeleton__price}></div>
+            </div>
+          ))
         )}
       </div>
     </div>
