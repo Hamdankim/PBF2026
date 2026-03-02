@@ -1,24 +1,26 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import ProdukView from "@/views/produk/ProdukView";
+import TampilanProduk from "../../views/produk";
 
-const ProdukPage = () => {
-  const [isLogin, setIsLogin] = useState<boolean | null>(null);
-  const router = useRouter();
+const Kategori = () => {
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    const loginStatus = localStorage.getItem("isLogin");
+    fetch("/api/produk")
+      .then((response) => response.json())
+      .then((responsedata) => {
+        // Mengasumsikan struktur API adalah { data: [...] }
+        setProducts(responsedata.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching produk:", error);
+      });
+  }, []);
 
-    if (loginStatus === "true") {
-      setIsLogin(true);
-    } else {
-      router.push("/auth/login");
-    }
-  }, [router]);
-
-  if (isLogin === null) return null;
-
-  return <ProdukView />;
+  return (
+    <div>
+      <TampilanProduk products={products} />
+    </div>
+  );
 };
 
-export default ProdukPage;
+export default Kategori;
