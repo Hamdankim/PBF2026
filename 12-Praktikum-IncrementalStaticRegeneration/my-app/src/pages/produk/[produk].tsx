@@ -1,8 +1,6 @@
-import fetcher from "@/utils/swr/fetcher";
-import { useRouter } from "next/router";
-import useSWR from "swr";
 import DetailProduk from "../../views/DetailProduct";
 import { ProductType } from "@/types/Product.type";
+import { retrieveDataByID, retrieveProducts } from "@/utils/db/servicefirebase";
 
 const HalamanProduk = ({ product }: { product: ProductType }) => {
   // digunakan client-side rendering
@@ -32,10 +30,9 @@ export default HalamanProduk;
 
 /* digunakan static-site generation */
 export async function getStaticPaths() {
-  const res = await fetch("http://localhost:3000/api/products");
-  const response = await res.json();
+  const products = await retrieveProducts("products");
 
-  const paths = response.data.map((product: ProductType) => ({
+  const paths = products.map((product: { id: string }) => ({
     params: { produk: product.id },
   }));
 
@@ -48,15 +45,13 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params }: { params: { produk: string } }) {
-  const res = await fetch(`http://localhost:3000/api/produk/${params?.produk}`);
-  // const response: ProductType[] = await res.json();
-  const response: { data: ProductType } = await res.json();
+  const product = await retrieveDataByID("products", params?.produk);
 
   // console.log("Data produk yang diambil dari API:", response);
 
   return {
     props: {
-      product: response.data,
+      product,
     },
   };
 }
