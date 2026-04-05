@@ -1,0 +1,73 @@
+import { signIn } from "@/utils/db/servicefirebase";
+import NextAuth, { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { sign } from "node:crypto";
+import bcrypt from "bcrypt";
+
+export const authOptions: NextAuthOptions = {
+  session: {
+    strategy: "jwt",
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  providers: [
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        // fullname: { label: "Full Name", type: "text" },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials, _req) {
+        if (!credentials?.email || !credentials?.password) return null;
+
+        const user: any = await signIn(credentials.email);
+
+        if (user) {
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+
+          if (isPasswordValid) {
+            return {
+              id: String(user.id ?? user.uid ?? user.email),
+              name: user.fullname ?? null,
+              email: user.email,
+              fullname: user.fullname, // Menambahkan fullname ke objek user yang dikembalikan
+              role: user.role // Menambahkan role ke objek user yang dikembalikan, default ke "user" jika tidak ada
+            };
+          }
+        }
+        return null;
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, account, profile, user }: any) {
+      if (account?.provider === "credentials" && user) {
+        token.email = user.email;
+        token.fullname = user.fullname; // Menambahkan fullname ke token jika diperlukan
+        token.role = user.role; // Menambahkan role ke token jika diperlukan
+      }
+      return token;
+    },
+    async session({ session, token }: any) {
+      if (token.email) {
+        session.user.email = token.email;
+      }
+      if (token.fullname) {
+        session.user.fullname = token.fullname; // Menambahkan fullname ke session jika diperlukan
+      }
+      if (token.role) {
+        session.user.role = token.role; // Menambahkan role ke session jika diperlukan
+      }
+      return session;
+    },
+  },
+
+  pages: {
+    signIn: "/auth/login",
+  },
+};
+
+export default NextAuth(authOptions);
