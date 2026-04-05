@@ -1,9 +1,10 @@
+import Image from "next/image";
 import styles from './navbar.module.css';
 import { signIn, signOut, useSession } from "next-auth/react";
 
 const Navbar = () => {
   // Menggunakan destructuring yang lebih deskriptif (data alias session)
-  const { data }:any = useSession();
+  const { data }: any = useSession();
 
   return (
     <div className={styles.navbar}>
@@ -15,8 +16,19 @@ const Navbar = () => {
         {data ? (
           <>
             <div className={styles.navbar__user}>
-              {/* Optional chaining digunakan untuk menghindari error jika data belum load */}
-              Welcome, {data.user?.fullname}
+              <span>
+                Welcome, {data.user?.fullname}
+                {data.user?.role ? ` (${data.user.role})` : ""}
+              </span>
+              {data.user?.image && (
+                <Image
+                  src={data.user.image}
+                  alt={data.user.fullname}
+                  width={42}
+                  height={42}
+                  className={styles.navbar__user__image}
+                />
+              )}
             </div>
             <button
               className={`${styles.navbar__button} ${styles["navbar__button--danger"]}`}

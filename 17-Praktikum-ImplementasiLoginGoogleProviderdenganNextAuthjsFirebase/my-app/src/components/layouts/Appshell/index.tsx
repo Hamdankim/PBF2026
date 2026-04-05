@@ -8,9 +8,9 @@ type AppShellProps = {
     children: React.ReactNode
 }
 
-const AppShell = (props:AppShellProps) => {
-    const {children} = props;
-    const {pathname} = useRouter();
+const AppShell = (props: AppShellProps) => {
+    const { children } = props;
+    const { pathname } = useRouter();
     return (
         <main>
             {!disableNavbarFooter.includes(pathname) && <Navbar />}

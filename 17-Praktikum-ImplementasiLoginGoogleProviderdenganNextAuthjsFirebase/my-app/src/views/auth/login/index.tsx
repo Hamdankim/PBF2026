@@ -8,7 +8,7 @@ const TampilanLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { push, query } = useRouter();
 
-  const callbackUrl:any = query.callbackUrl || "/";
+  const callbackUrl = typeof query.callbackUrl === "string" ? query.callbackUrl : "/";
   const [error, setError] = useState("");
 
   const handleSubmit = async (event: any) => {
@@ -21,7 +21,7 @@ const TampilanLogin = () => {
         redirect: false,
         email: event.target.email.value,
         password: event.target.Password.value,
-        callbackUrl
+        callbackUrl,
       });
 
       if (res?.error) {
@@ -38,58 +38,97 @@ const TampilanLogin = () => {
 
   };
 
+  const handleOAuthSignIn = async (provider: "google" | "github") => {
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const res = await signIn(provider, { callbackUrl, redirect: false });
+
+      if (res?.error) {
+        setError(res.error);
+      } else if (res?.url) {
+        window.location.href = res.url;
+      } else {
+        push(callbackUrl);
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan saat login");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
-    <div className={style.login}>
-      {error && <p className={style.login__error}>{error}</p>}
-      <h1 className={style.login__title}>Halaman Login</h1>
-      <div className={style.login__form}>
-        <form onSubmit={handleSubmit}>
-          <div className={style.login__form__item}>
-            <label
-              htmlFor="email"
-              className={style.login__form__item__label}
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              placeholder="Email"
-              className={style.login__form__item__input}
-            />
-          </div>
+      <div className={style.login}>
+        {error && <p className={style.login__error}>{error}</p>}
+        <h1 className={style.login__title}>Halaman Login</h1>
+        <div className={style.login__form}>
+          <form onSubmit={handleSubmit}>
+            <div className={style.login__form__item}>
+              <label
+                htmlFor="email"
+                className={style.login__form__item__label}
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Email"
+                className={style.login__form__item__input}
+              />
+            </div>
 
-          <div className={style.login__form__item}>
-            <label
-              htmlFor="Password"
-              className={style.login__form__item__label}
+            <div className={style.login__form__item}>
+              <label
+                htmlFor="Password"
+                className={style.login__form__item__label}
+              >
+                Password
+              </label>
+              <input
+                type="password"
+                id="Password"
+                name="Password"
+                placeholder="Password"
+                className={style.login__form__item__input}
+              />
+            </div>
+            <button
+              type="submit"
+              className={style.login__form__item__button}
+              disabled={isLoading}
             >
-              Password
-            </label>
-            <input
-              type="password"
-              id="Password"
-              name="Password"
-              placeholder="Password"
-              className={style.login__form__item__input}
-            />
-          </div>
-          <button
-            type="submit"
-            className={style.login__form__item__button}
-            disabled={isLoading}
-          >
-            {isLoading ? "Loading..." : "Login"}
-          </button>
-        </form>
-        <br />
-        <p className={style.login__form__item__text}>
-          Tidak punya akun? <Link href="/auth/register">Ke Halaman Register</Link>
-        </p>
+              {isLoading ? "Loading..." : "Login"}
+            </button>
+            <br /> <br />
+            <button
+              type="button"
+              onClick={() => handleOAuthSignIn("google")}
+              className={style.login__form__item__button}
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : "Sign in with Google"}
+            </button>
+            <br /> <br />
+            <button
+              type="button"
+              onClick={() => handleOAuthSignIn("github")}
+              className={style.login__form__item__button}
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : "Sign in with GitHub"}
+            </button>
+          </form>
+          <br />
+          <p className={style.login__form__item__text}>
+            Tidak punya akun? <Link href="/auth/register">Ke Halaman Register</Link>
+          </p>
+        </div>
       </div>
-    </div>
     </>
   );
 };

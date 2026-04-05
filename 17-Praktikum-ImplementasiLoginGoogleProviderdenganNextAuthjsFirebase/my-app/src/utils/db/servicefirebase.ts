@@ -2,17 +2,58 @@ import {
   getFirestore,
   collection,
   getDocs,
-  Firestore,
   getDoc,
   doc,
   query,
   addDoc,
   where,
+  updateDoc,
 } from "firebase/firestore";
 import app from "./firebase";
-import bcrypt from "bcrypt"; // Tambahan dari baris 7
+import bcrypt from "bcrypt";
 
 const db = getFirestore(app);
+
+export type UserRole = "member" | "editor" | "admin";
+
+type UserRecord = {
+  id: string;
+  email: string;
+  fullname?: string;
+  password?: string;
+  role?: UserRole;
+  image?: string;
+  type?: string;
+  [key: string]: any;
+};
+
+type OAuthUserData = {
+  fullname: string;
+  email: string;
+  image?: string;
+  type: string;
+  role?: UserRole;
+};
+
+const USERS_COLLECTION = "users";
+
+const mapSnapshotToData = <T>(snapshot: any): T[] =>
+  snapshot.docs.map((document: any) => ({
+    id: document.id,
+    ...document.data(),
+  })) as T[];
+
+async function findUserByEmail(email: string) {
+  const userQuery = query(
+    collection(db, USERS_COLLECTION),
+    where("email", "==", email),
+  );
+
+  const querySnapshot = await getDocs(userQuery);
+  const users = mapSnapshotToData<UserRecord>(querySnapshot);
+
+  return users[0] ?? null;
+}
 
 export async function retrieveProducts(collectionName: string) {
   const snapshot = await getDocs(collection(db, collectionName));
@@ -29,56 +70,35 @@ export async function retrieveDataByID(collectionName: string, id: string) {
   return data;
 }
 
-export async function signIn(
-  email:string) {
-  const q = query(
-    collection(db, "users"),
-    where("email", "==", email)
-  );
-  const querySnapshot = await getDocs(q);
-  const data = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-  if (data) {
-    return data[0];
-  } else {
-    return null;
-  }
+export async function signIn(email: string) {
+  return findUserByEmail(email);
 }
 
 export async function signUp(
-  userData: { 
-    email: string; 
-    fullname: string; 
+  userData: {
+    email: string;
+    fullname: string;
     password: string;
-    role?: string; // Tambahan dari baris 31
+    role?: UserRole;
   },
-  callback: Function
+  callback: Function,
 ) {
-  const q = query(
-    collection(db, "users"),
-    where("email", "==", userData.email)
-  );
-  
-  const querySnapshot = await getDocs(q);
-  const data = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  const existingUser = await findUserByEmail(userData.email);
 
-  if (data.length > 0) {
-    // Jika data ditemukan, berarti email sudah terdaftar
+  if (existingUser) {
     callback({
       status: "error",
       message: "User already exists",
     });
   } else {
-    // Proses pendaftaran (Blok kode baris 55-70)
-    userData.password = await bcrypt.hash(userData.password, 10);
-    userData.role = "member";
-    
-    await addDoc(collection(db, "users"), userData)
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const payload = {
+      ...userData,
+      password: hashedPassword,
+      role: userData.role ?? "member",
+    };
+
+    await addDoc(collection(db, USERS_COLLECTION), payload)
       .then(() => {
         callback({
           status: "success",
@@ -93,3 +113,45 @@ export async function signUp(
       });
   }
 }
+
+export async function syncOAuthUser(
+  userData: OAuthUserData,
+  callback: Function,
+) {
+  try {
+    const existingUser = await findUserByEmail(userData.email);
+
+    if (existingUser) {
+      const payload = {
+        ...userData,
+        role: existingUser.role ?? "member",
+      };
+
+      await updateDoc(doc(db, USERS_COLLECTION, existingUser.id), payload);
+      callback({
+        status: true,
+        message: "User registered and logged in with Google",
+        data: payload,
+      });
+    } else {
+      const payload = {
+        ...userData,
+        role: userData.role ?? "member",
+      };
+
+      await addDoc(collection(db, USERS_COLLECTION), payload);
+      callback({
+        status: true,
+        message: "User registered and logged in with Google",
+        data: payload,
+      });
+    }
+  } catch (error: any) {
+    callback({
+      status: false,
+      message: "Failed to register user with Google",
+    });
+  }
+}
+
+export const signInWithGoogle = syncOAuthUser;

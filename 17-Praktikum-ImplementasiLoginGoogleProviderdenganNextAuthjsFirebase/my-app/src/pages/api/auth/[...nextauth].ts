@@ -1,8 +1,9 @@
-import { signIn } from "@/utils/db/servicefirebase";
+import { signIn, syncOAuthUser } from "@/utils/db/servicefirebase";
+import bcrypt from "bcrypt";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { sign } from "node:crypto";
-import bcrypt from "bcrypt";
+import GitHubProvider from "next-auth/providers/github";
+import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -13,42 +14,68 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        // fullname: { label: "Full Name", type: "text" },
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, _req) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
         const user: any = await signIn(credentials.email);
 
-        if (user) {
-          const isPasswordValid = await bcrypt.compare(
-            credentials.password,
-            user.password
-          );
+        if (!user) return null;
 
-          if (isPasswordValid) {
-            return {
-              id: String(user.id ?? user.uid ?? user.email),
-              name: user.fullname ?? null,
-              email: user.email,
-              fullname: user.fullname, // Menambahkan fullname ke objek user yang dikembalikan
-              role: user.role // Menambahkan role ke objek user yang dikembalikan, default ke "user" jika tidak ada
-            };
-          }
-        }
-        return null;
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user.password,
+        );
+
+        if (!isPasswordValid) return null;
+
+        return {
+          id: String(user.id ?? user.uid ?? user.email),
+          name: user.fullname ?? null,
+          email: user.email,
+          fullname: user.fullname,
+          role: user.role ?? "member",
+        };
       },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     }),
   ],
   callbacks: {
-    async jwt({ token, account, profile, user }: any) {
+    async jwt({ token, account, user }: any) {
       if (account?.provider === "credentials" && user) {
         token.email = user.email;
-        token.fullname = user.fullname; // Menambahkan fullname ke token jika diperlukan
-        token.role = user.role; // Menambahkan role ke token jika diperlukan
+        token.fullname = user.fullname;
+        token.role = user.role ?? "member";
       }
+
+      if (account?.provider === "google" || account?.provider === "github") {
+        const oauthUser = {
+          fullname: user?.name ?? "",
+          email: user?.email ?? "",
+          image: user?.image ?? "",
+          type: account.provider,
+        };
+
+        await syncOAuthUser(oauthUser, (result: any) => {
+          if (result.status) {
+            token.fullname = result.data.fullname;
+            token.email = result.data.email;
+            token.image = result.data.image;
+            token.type = result.data.type;
+            token.role = result.data.role;
+          }
+        });
+      }
+
       return token;
     },
     async session({ session, token }: any) {
@@ -56,15 +83,20 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email;
       }
       if (token.fullname) {
-        session.user.fullname = token.fullname; // Menambahkan fullname ke session jika diperlukan
+        session.user.fullname = token.fullname;
+      }
+      if (token.image) {
+        session.user.image = token.image;
       }
       if (token.role) {
-        session.user.role = token.role; // Menambahkan role ke session jika diperlukan
+        session.user.role = token.role;
+      }
+      if (token.type) {
+        session.user.type = token.type;
       }
       return session;
     },
   },
-
   pages: {
     signIn: "/auth/login",
   },

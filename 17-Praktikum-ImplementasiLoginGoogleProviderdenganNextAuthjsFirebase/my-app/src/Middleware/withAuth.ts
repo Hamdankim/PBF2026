@@ -1,7 +1,16 @@
 import { getToken } from "next-auth/jwt";
 import { NextFetchEvent, NextMiddleware, NextRequest, NextResponse } from "next/server";
 
-const hanyaAdmin = ["/admin"];
+type ProtectedRoute = {
+  path: string;
+  roles: Array<"member" | "editor" | "admin">;
+};
+
+const protectedRoutes: ProtectedRoute[] = [
+  { path: "/profile", roles: ["member", "editor", "admin"] },
+  { path: "/editor", roles: ["editor", "admin"] },
+  { path: "/admin", roles: ["admin"] },
+];
 
 export default function withAuth(
   middleware: NextMiddleware,
@@ -9,14 +18,13 @@ export default function withAuth(
 ) {
   return async (req: NextRequest, next: NextFetchEvent) => {
     const pathname = req.nextUrl.pathname;
-    const isProtectedRoute = requireAuth.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`),
-    );
-    const isAdminRoute = hanyaAdmin.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    const matchedRoute = protectedRoutes.find(
+      (route) =>
+        requireAuth.includes(route.path) &&
+        (pathname === route.path || pathname.startsWith(`${route.path}/`)),
     );
 
-    if (isProtectedRoute) {
+    if (matchedRoute) {
       const token = await getToken({
         req,
         secret: process.env.NEXTAUTH_SECRET,
@@ -31,7 +39,7 @@ export default function withAuth(
         return NextResponse.redirect(loginUrl);
       }
 
-      if (token.role !== "admin" && isAdminRoute) {
+      if (!matchedRoute.roles.includes(token.role as any)) {
         return NextResponse.redirect(new URL("/", req.url));
       }
     }
