@@ -1,5 +1,6 @@
 import styles from "../../pages/produk/product.module.scss";
 import Link from "next/link";
+import Image from "next/image";
 
 type ProductType = {
   id: string;
@@ -15,16 +16,18 @@ const TampilanProduk = ({ products }: { products: ProductType[] }) => {
       <h1 className={styles.produk__title}>Daftar Produk</h1>
 
       <div className={styles.produk__content}>
-        {products?.length > 0 ? (
-          products.map((product: ProductType) => (
+        {products?.length > 0
+          ? products.map((product: ProductType) => (
             <Link
               href={`/produk/${product.id}`}
               key={product.id}
               className={styles.produk__content__item}
             >
-              <img
+              <Image
                 src={product.image}
                 alt={product.name}
+                width={200}
+                height={200}
                 className={styles.produk__content__item__image}
               />
 
@@ -41,19 +44,14 @@ const TampilanProduk = ({ products }: { products: ProductType[] }) => {
               </p>
             </Link>
           ))
-        ) : (
-          Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className={styles.produk__content__skeleton}
-            >
+          : Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className={styles.produk__content__skeleton}>
               <div className={styles.skeleton__image}></div>
               <div className={styles.skeleton__name}></div>
               <div className={styles.skeleton__category}></div>
               <div className={styles.skeleton__price}></div>
             </div>
-          ))
-        )}
+          ))}
       </div>
     </div>
   );

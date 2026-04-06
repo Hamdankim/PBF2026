@@ -1,11 +1,10 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
-import Link from 'next/link'
-import Navbar from '@/components/layouts/Navbar'
+import Head from "next/head";
+import Image from "next/image";
+import { Inter } from "next/font/google";
+import styles from "@/styles/Home.module.css";
+import Link from "next/link";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   return (
@@ -30,11 +29,12 @@ export default function Home() {
         height={200}
       />
 
-      <br /><br />
+      <br />
+      <br />
 
       <p>
         <Link href="/about">About Page</Link>
       </p>
     </div>
-  )
+  );
 }
